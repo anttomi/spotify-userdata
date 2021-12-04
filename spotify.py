@@ -16,7 +16,7 @@ class Artist:
         return self.duration/1000/60/60
         
     def addSong(self, track):
-        self.tracks[track] = 1
+        self.tracks[track] = 0
 
     def addSongCount(self, track):
         self.tracks[track] += 1
@@ -81,13 +81,13 @@ def formArtists(jsons, threshold=5000):
 
                 if trackName not in artists[artistName].tracks.keys():
                     artists[artistName].addSong(trackName)
-                else:
-                    try:
-                        if songDuration > countAsListen:
-                            artists[artistName].addSongCount(trackName)
-                            artists[artistName].addDuration(songDuration)
-                    except KeyError:
-                        print(trackName + " KeyError")
+                
+                try:
+                    if songDuration > countAsListen:
+                        artists[artistName].addSongCount(trackName)
+                        artists[artistName].addDuration(songDuration)
+                except KeyError:
+                    print(trackName + " KeyError")
                 duration += songDuration
             i += 1
     return artists,start,end,duration
