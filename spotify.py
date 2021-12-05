@@ -33,8 +33,8 @@ class Artist:
     def __str__(self):
         return "\n%s \nTimes Played: %s \nDuration: " % (self.name, self.getPlayCount()) + '{:.2f}'.format((self.duration/1000)/60/60) + "\nMost Played Song: " + str(self.getMostPlayedSong()) +"\n"
 
-
-#Artist dictionary printing method
+    
+#Artist dictionary printing method, not used
 def outputDictionary(artists):
     #Sorting artists dictionary
     artists = sorted(artists.values(), key=operator.attrgetter('duration'), reverse=True)
@@ -101,6 +101,7 @@ def timeformat(start, end):
 def guiMain():
     jsons = len([name for name in os.listdir('.') if os.path.isfile(name) and "endsong" in name])
     threshold = 60000 
+    #If there is user input handling
     if threshold == None:
         artists,start,end,duration = formArtists(jsons)
     else:
