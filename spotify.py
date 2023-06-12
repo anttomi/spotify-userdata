@@ -1,41 +1,10 @@
 import json, datetime, operator, os
 import tkinter as tk
 from io import open
-from functools import reduce
-
-class Artist:
-    def __init__(self, name):
-        self.name = name
-        self.duration = 0
-        self.tracks = {}
-
-    def addDuration(self, duration):
-        self.duration += duration
-
-    def getDurationHours(self):
-        return self.duration/1000/60/60
-        
-    def addSong(self, track):
-        self.tracks[track] = 0
-
-    def addSongCount(self, track):
-        self.tracks[track] += 1
-
-    def getSortedList(self):
-        return sorted(self.tracks.items(), key=lambda x: int(x[1]), reverse=True)
-    
-    def getMostPlayedSong(self):
-        return sorted(self.tracks.items(), key=lambda x: int(x[1]), reverse=True)[0]
-    
-    def getPlayCount(self):
-        return reduce(lambda a, b: a+b, self.tracks.values())
-
-    def __str__(self):
-        return "\n%s \nTimes Played: %s \nDuration: " % (self.name, self.getPlayCount()) + '{:.2f}'.format((self.duration/1000)/60/60) + "\nMost Played Song: " + str(self.getMostPlayedSong()) +"\n"
-
+from Classes.Artist import Artist
     
 #Artist dictionary printing method, not used
-def outputDictionary(artists):
+def outputDictionary(artists: dict):
     #Sorting artists dictionary
     artists = sorted(artists.values(), key=operator.attrgetter('duration'), reverse=True)
     for artist in artists:
@@ -46,19 +15,19 @@ def outputDictionary(artists):
     #[0:30]
 
 #Forming the artists dictionary and collecting data
-def formArtists(jsons, threshold=5000):
+def formArtists(jsons: list, threshold: int = 5000) -> tuple[dict, datetime.datetime, datetime.datetime, int]:
     #Artist dictionary that contains artist objects
     artists = {}
-    #How many ms to have been streamed a song to be counted
-    countAsListen = threshold
-    #Total duration of streamed songs, which were streamed longer than countAsListen threshold variable
+    #Threshold is how many ms to have been streamed a song to be counted
+    #Total duration of streamed songs, which were streamed longer than threshold variable
     duration = 0
     #Keeping count of jsons
+    jsonCount = len(jsons)
     i = 0
-    while (i < jsons):
-        print("%d/%d" % (i+1, jsons))
-        #Open the streaming history file from the script directory, encoding so cyrillic alphabets don't cause problems
-        with open(os.path.dirname(__file__) + './endsong_%d.json' % (i), 'r', encoding="utf-8") as streamsJson:
+    while (i < jsonCount):
+        print("%d/%d" % (i+1, jsonCount))
+        #Open the streaming history file from the script directory, encoding so cyrillic alphabets don't cause problems(?)
+        with open(os.path.dirname(__file__) + './' + jsons[i], 'r', encoding="utf-8") as streamsJson:
             streams = json.load(streamsJson)
             if i == 0:
                 start = streams[0]["ts"]
@@ -83,23 +52,24 @@ def formArtists(jsons, threshold=5000):
                     artists[artistName].addSong(trackName)
                 
                 try:
-                    if songDuration > countAsListen:
+                    if songDuration > threshold:
                         artists[artistName].addSongCount(trackName)
                         artists[artistName].addDuration(songDuration)
                 except KeyError:
                     print(trackName + " KeyError")
+
                 duration += songDuration
             i += 1
     return artists,start,end,duration
 
-def timeformat(start, end):
+def timeformat(start: datetime.datetime, end: datetime.datetime) -> datetime.datetime:
     startDateTime = datetime.datetime.strptime(start, '%Y-%m-%dT%H:%M:%SZ')
     endDateTime = datetime.datetime.strptime(end, '%Y-%m-%dT%H:%M:%SZ')
     timedelta = endDateTime - startDateTime
     return timedelta 
 
 def guiMain():
-    jsons = len([name for name in os.listdir('.') if os.path.isfile(name) and "endsong" in name])
+    jsons = [name for name in os.listdir('.') if os.path.isfile(name) and ".json" in name]
     threshold = 60000 
     #If there is user input handling
     if threshold == None:
@@ -119,4 +89,20 @@ def guiMain():
         textbox.insert(1.0, artist)
     tk.mainloop()
 
-guiMain()
+def main():
+    jsons = [name for name in os.listdir('.') if os.path.isfile(name) and "endsong" in name]
+    threshold = 60000 
+    #If there is user input handling
+    if threshold == None:
+        artists,start,end,duration = formArtists(jsons)
+    else:
+        artists,start,end,duration = formArtists(jsons, threshold)
+
+    print(artists["Reverend Bizarre"])
+
+if __name__ == "__main__":
+    guiMain()
+    #jsons = [name for name in os.listdir('.') if os.path.isfile(name) and ".json" in name]
+    #jsonCount = len(jsons)
+
+    
